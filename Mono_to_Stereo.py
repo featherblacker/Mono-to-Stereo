@@ -9,12 +9,21 @@ import matplotlib.pyplot as plt
 # a. Using experimentally measured HRIRs
 # 1) Time domain
 def load_HRIR1(database):
-    hrir = scio.loadmat(database)
-    left_1 = list(hrir['hrir_l'][:, 8, :])
-    left_2 = hrir['hrir_l'][:, 40, :]  # import two half circle parts of left
+    """
+    Load up Head Related Impulse Response database as in horizontal aspect for both ears.
+    :param database: Provided Head Related Impulse Response database as .mat format.
+    :return: Array of database.
+    """
+    # Load up the database
+    HRIR = scio.loadmat(database)
 
+    # Import two half circle models of the left ear
+    left_1 = list(HRIR['hrir_l'][:, 8, :])
+    left_2 = HRIR['hrir_l'][:, 40, :]
+
+    # get left ear horizontal HRIR
     out_left = []
-    for i in range(len(left_1) // 2+1, len(left_1)):
+    for i in range(len(left_1) // 2 + 1, len(left_1)):
         out_left.append(left_1[i])
     left_a = []
     for i in range(len(left_2)):
@@ -22,14 +31,16 @@ def load_HRIR1(database):
     left_2 = left_a
     for i in range(len(left_2)):
         out_left.append(left_2[i])
-    for i in range(len(left_1) // 2+1):
-        out_left.append(left_1[i])  # get left hrir of horizon
+    for i in range(len(left_1) // 2 + 1):
+        out_left.append(left_1[i])
 
-    right_1 = list(hrir['hrir_r'][:, 8, :])
-    right_2 = hrir['hrir_r'][:, 40, :]  # import two half circle parts of right
+    # Import two half circle parts of the right ear
+    right_1 = list(HRIR['hrir_r'][:, 8, :])
+    right_2 = HRIR['hrir_r'][:, 40, :]
 
+    # get right ear horizontal HRIR
     out_right = []
-    for i in range(len(right_1) // 2+1, len(right_1)):
+    for i in range(len(right_1) // 2 + 1, len(right_1)):
         out_right.append(right_1[i])
     right_a = []
     for i in range(len(right_2)):
@@ -37,42 +48,54 @@ def load_HRIR1(database):
     right_2 = right_a
     for i in range(len(right_2)):
         out_right.append(right_2[i])
-    for i in range(len(right_1) // 2+1):
-        out_right.append(right_1[i])  # get right hrir of horizon
+    for i in range(len(right_1) // 2 + 1):
+        out_right.append(right_1[i])
 
+    # return the array of horizontal sound effect model for both two ears
     out_left = np.array(out_left)
     out_right = np.array(out_right)
     out = []
     for i in range(len(out_left)):
         out.append(out_left[i])
         out.append(out_right[i])
-    out = np.array(out)  # get the final hrir function
+    out = np.array(out)
     return out
 
 
 def load_HRIR2(database):
+    """
+    Load up Head Related Impulse Response database as in vertical aspect for both ears.
+    :param database: Provided Head Related Impulse Response database as .mat format.
+    :return: Array of database.
+    """
+    # Load up the database
     hrir = scio.loadmat(database)
-    left_v = hrir['hrir_l'][:, 24, :]  # import left vertical hrir
+    # import left vertical HRIR
+    left_v = hrir['hrir_l'][:, 24, :]
 
+    # the left HRIR function
     left_a = []
     for i in range(len(left_v)):
         left_a.append(left_v[-i - 1])
-    out_left = left_a  # the left hrir function
+    out_left = left_a
 
-    right_v = hrir['hrir_r'][:, 24, :]  # import left vertical hrir
+    # import right vertical HRIR
+    right_v = hrir['hrir_r'][:, 24, :]
 
+    # the right HRIR function
     right_a = []
     for i in range(len(right_v)):
         right_a.append(right_v[-i - 1])
-    out_right = right_a  # the right hrir function
+    out_right = right_a
 
+    # the final HRIR function vertical model
     out_left = np.array(out_left)
     out_right = np.array(out_right)
     out = []
     for i in range(len(out_left)):
         out.append(out_left[i])
         out.append(out_right[i])
-    out = np.array(out)  # the final hrir function vertical
+    out = np.array(out)
     return out
 
 
@@ -103,7 +126,7 @@ def Convolve(signal, hrir, step, points_number):
     segment_R = []
     signal = np.array(signal)
     for i in range(points_number):
-        segment_L.append(np.convolve(hrir[2 * i], signal[step * i:step * (i + 1)],'same'))
+        segment_L.append(np.convolve(hrir[2 * i], signal[step * i:step * (i + 1)], 'same'))
         segment_R.append(np.convolve(hrir[2 * i + 1], signal[step * i:step * (i + 1)], 'same'))
     return segment_L, segment_R
 
@@ -118,15 +141,16 @@ def Write(name, segment_L, segment_R):
     for item in segment_R:
         for sub in item:
             right.append(sub.real)
-    output = array.array('h',[])[::2]
+    output = array.array('h', [])[::2]
 
     for i in range(len(left)):
-        output.append(int(right[i]/2))
-        output.append(int(left[i]/2))
+        output.append(int(right[i] / 2))
+        output.append(int(left[i] / 2))
 
-    ofile = wave.open(name,'w')
-    ofile.setparams((2,2,44100,len(output),'NONE','NONE'))
+    ofile = wave.open(name, 'w')
+    ofile.setparams((2, 2, 44100, len(output), 'NONE', 'NONE'))
     ofile.writeframes(output.tostring())
+
 
 print('1) Time domain')
 
@@ -185,15 +209,15 @@ def freq(signal, hrir):
 
 
 def Write_f(name, left, right):
-
     output = array.array('h', [])[::2]
     for i in range(len(left)):
-        output.append(int(right[i]/2))
-        output.append(int(left[i]/2))
+        output.append(int(right[i] / 2))
+        output.append(int(left[i] / 2))
     # output = np.array(output).T
     ofile = wave.open(name, 'w')
     ofile.setparams((2, 2, 44100, len(output), 'NONE', 'NONE'))
     ofile.writeframes(output.tostring())
+
 
 print('\n2) Frequency domain')
 
@@ -243,6 +267,7 @@ def design_hrir():
         hrir.append(hrir_r[i])
     return hrir
 
+
 print('\n3) Design part')
 d_hrir = design_hrir()
 d_signal, d_points_number, d_step = load_wave("Mario.wav", d_hrir)
@@ -251,4 +276,3 @@ design_L, design_R = Convolve(d_signal, d_hrir, d_step, d_points_number)
 Write("Design.wav", design_L, design_R)
 print('Horizontal sound of design finished.\n')
 print('All done.')
-
