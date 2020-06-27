@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 # a. Using experimentally measured HRIRs
 # 1) Time domain
-def load_HRIR1(database):
+def loadHRIR1(database):
     """
     Load up Head Related Impulse Response database as in horizontal aspect for both ears.
     :param database: Provided Head Related Impulse Response database as .mat format.
@@ -62,7 +62,7 @@ def load_HRIR1(database):
     return out
 
 
-def load_HRIR2(database):
+def loadHRIR2(database):
     """
     Load up Head Related Impulse Response database as in vertical aspect for both ears.
     :param database: Provided Head Related Impulse Response database as .mat format.
@@ -99,7 +99,7 @@ def load_HRIR2(database):
     return out
 
 
-def load_wave(wav, hrir):
+def loadWave(wav, hrir):
     """
     Load up the audio file and cut the wave into appropriate length snippets, the length of one snippets
     and the step length will be returned.
@@ -178,21 +178,21 @@ def Write(name, segment_L, segment_R):
 
     ofile = wave.open(name, 'w')
     ofile.setparams((2, 2, 44100, len(output), 'NONE', 'NONE'))
-    ofile.writeframes(output.tostring())
+    ofile.writeframes(output.tobytes())
 
 
 print('1) Time domain')
 
 # horizontal
-hrir_h = load_HRIR1('hrir_final.mat')
-signal_h, points_number_h, step_h = load_wave('Mario.wav', hrir_h)
+hrir_h = loadHRIR1('hrir_final.mat')
+signal_h, points_number_h, step_h = loadWave('Mario.wav', hrir_h)
 segment_L_h, segment_R_h = Convolve(signal_h, hrir_h, step_h, points_number_h)
 Write("timeDomain_horizontal.wav", segment_L_h, segment_R_h)
 print('Finished horizontal sound dealing.')
 
 # vertical
-hrir_v = load_HRIR2('hrir_final.mat')
-signal_v, points_number_v, step_v = load_wave('Mario.wav', hrir_v)
+hrir_v = loadHRIR2('hrir_final.mat')
+signal_v, points_number_v, step_v = loadWave('Mario.wav', hrir_v)
 segment_L_v, segment_R_v = Convolve(signal_v, hrir_v, step_v, points_number_v)
 Write("timeDomain_vertical.wav", segment_L_v, segment_R_v)
 print('Finished vertical sound dealing.')
@@ -260,7 +260,7 @@ def Write_f(name, left, right):
     # output = np.array(output).T
     ofile = wave.open(name, 'w')
     ofile.setparams((2, 2, 44100, len(output), 'NONE', 'NONE'))
-    ofile.writeframes(output.tostring())
+    ofile.writeframes(output.tobytes())
 
 
 print('\n2) Frequency domain')
@@ -275,7 +275,7 @@ print('Vertical sound of frequency domain have finished.')
 
 
 # 3) Design part
-def design_hrir():
+def designHrir():
     """
     Customized spatial sound effect.
     :return:
@@ -317,8 +317,8 @@ def design_hrir():
 
 
 print('\n3) Design part')
-d_hrir = design_hrir()
-d_signal, d_points_number, d_step = load_wave("Mario.wav", d_hrir)
+d_hrir = designHrir()
+d_signal, d_points_number, d_step = loadWave("Mario.wav", d_hrir)
 design_L, design_R = Convolve(d_signal, d_hrir, d_step, d_points_number)
 
 Write("Design.wav", design_L, design_R)
