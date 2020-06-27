@@ -183,21 +183,30 @@ def Write(name, segment_L, segment_R):
 
 print('1) Time domain')
 
-hrir_h = load_HRIR1('hrir_final.mat')  # horizontal
+# horizontal
+hrir_h = load_HRIR1('hrir_final.mat')
 signal_h, points_number_h, step_h = load_wave('Mario.wav', hrir_h)
 segment_L_h, segment_R_h = Convolve(signal_h, hrir_h, step_h, points_number_h)
 Write("timeDomain_horizontal.wav", segment_L_h, segment_R_h)
-print('Horizontal sound of time domain have finished.')
+print('Finished horizontal sound dealing.')
 
-hrir_v = load_HRIR2('hrir_final.mat')  # vertical
+# vertical
+hrir_v = load_HRIR2('hrir_final.mat')
 signal_v, points_number_v, step_v = load_wave('Mario.wav', hrir_v)
 segment_L_v, segment_R_v = Convolve(signal_v, hrir_v, step_v, points_number_v)
 Write("timeDomain_vertical.wav", segment_L_v, segment_R_v)
-print('Vertical sound of time domain have finished.')
+print('Finished vertical sound dealing.')
 
 
 # 2) Frequency domain
 def freq(signal, hrir):
+    """
+    Use fast fourier transform to change the signal wave from time domain into frequency domain, then do a multiplication with HRIR
+    to achieve stereo spatial sound effect.
+    :param signal: Origin audio.
+    :param hrir: Stereo sound effect model.
+    :return: Left and right channel of audio
+    """
     s = list(np.array(signal).T)  # signal
     for i in range(len(hrir)):
         s.append(0)
@@ -238,6 +247,12 @@ def freq(signal, hrir):
 
 
 def Write_f(name, left, right):
+    """
+    Write new audio into the file.
+    :param name: File name.
+    :param left: Left channel audio.
+    :param right: Right channel audio.
+    """
     output = array.array('h', [])[::2]
     for i in range(len(left)):
         output.append(int(right[i] / 2))
@@ -261,6 +276,10 @@ print('Vertical sound of frequency domain have finished.')
 
 # 3) Design part
 def design_hrir():
+    """
+    Customized spatial sound effect.
+    :return:
+    """
     t = 0.0001
     hrir_l = [[0] * 1 for i in range(36)]
     hrir_r = [[0] * 1 for i in range(36)]
