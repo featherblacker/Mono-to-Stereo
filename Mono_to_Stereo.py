@@ -100,27 +100,50 @@ def load_HRIR2(database):
 
 
 def load_wave(wav, hrir):
+    """
+    Load up the audio file and cut the wave into appropriate length snippets, the length of one snippets
+    and the step length will be returned.
+    :param wav: The audio file to be dealt with.
+    :param hrir: Array of spatial sound model.
+    :return signal: The list of audio data.
+    :return points_number: The number of directions of the spatial sound effect.
+    :return step: The length of each snippet to be dealt with one direction sound effect.
+    """
     sfile = wave.open(wav, 'rb')
     (nchannels, sampwidth, fs, nf, comptype, compname) = sfile.getparams()
 
-    assert comptype == 'NONE'  # Compressed not supported yet
+    # Compressed not supported yet
+    assert comptype == 'NONE'
     array_type = {1: 'B', 2: 'h', 4: 'l'}[sampwidth]
     signal = list(array.array(array_type, sfile.readframes(nf))[::nchannels])
 
-    signal = np.array(signal)  # the 20 secs signal
-    length = len(signal)  # length of signal
+    # the 20 secs signal
+    signal = np.array(signal)
+    # length of signal
+    length = len(signal)
     signal = signal.tolist()
-    points_number = len(hrir) // 2  # number of directions
+    # number of directions
+    points_number = len(hrir) // 2
     # m = ((length // points_number + 1) * points_number - length)
     # if length % points_number != 0:
     #     if m != 0:
     #         signal.append(0)  # zero padding
     #         m -= 1
-    step = length // points_number  # length of signal in each direction
+
+    # length of signal in each direction
+    step = length // points_number
     return signal, points_number, step
 
 
 def Convolve(signal, hrir, step, points_number):
+    """
+    Use convolution function to deal with origin audio and spatial sound effect to achieve a stereo effect.
+    :param signal: Original audio.
+    :param hrir: Array of sound effect.
+    :param step: Length of per snippet to be handled.
+    :param points_number: The number of directions of the spatial sound effect.
+    :return: Synthetic audio file of left channel and right channel.
+    """
     # Convolution of two pieces
     segment_L = []
     segment_R = []
@@ -132,6 +155,12 @@ def Convolve(signal, hrir, step, points_number):
 
 
 def Write(name, segment_L, segment_R):
+    """
+    Write the synthetic stereo effect audio data into the file with .wav format.
+    :param name: The name of file.
+    :param segment_L: Left channel data.
+    :param segment_R: Right channel data.
+    """
     # write 2D wave
     left = []
     right = []
@@ -154,7 +183,7 @@ def Write(name, segment_L, segment_R):
 
 print('1) Time domain')
 
-hrir_h = load_HRIR1('hrir_final.mat')  # horizon
+hrir_h = load_HRIR1('hrir_final.mat')  # horizontal
 signal_h, points_number_h, step_h = load_wave('Mario.wav', hrir_h)
 segment_L_h, segment_R_h = Convolve(signal_h, hrir_h, step_h, points_number_h)
 Write("timeDomain_horizontal.wav", segment_L_h, segment_R_h)
